@@ -5,7 +5,7 @@ This is our PBL (project based learning) project for college. We got assigned
 the topic Inter-Process Communication (IPC) and had to build it out as a team, 
 with everyone committing their part weekly on github.
 
-## So wts IPC actually
+## What's IPC actually
 Basically processes on a computer run separately and don't share memory with 
 each other by default. IPC is just the different ways processes can send data 
 to each other / talk to each other even though they're separate. Used a lot 
@@ -35,7 +35,7 @@ Split the topic into parts, one person doing each:
 ## Team
 | Name   | Role      | Working on     |
 |--------|-----------|----------------|
-| ANAM | Team Lead |    | PIPES
+| ANAM | Team Lead |  PIPES|  
 | KEITH | Member    | MESSAGE QUEUES   |
 | BRAYAN | Member    | SHARED MEMORY    |
 | ATUL | Member    | SOCKETS   |
