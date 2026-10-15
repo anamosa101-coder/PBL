@@ -4,7 +4,7 @@
 
 In modern operating systems, processes execute in isolated address spaces protected by hardware memory virtualization. While isolation prevents processes from interfering with each other, complex software systems require separate processes to coordinate, exchange data, and share state. 
 
-This repository documents an academic Project-Based Learning (PBL) initiative exploring **Inter-Process Communication (IPC)** mechanisms under POSIX-compliant operating systems. The project is developed collaboratively with weekly milestones spanning fundamental IPC paradigms, a decoupled multi-process CPU simulator, and process scheduling analytics.
+This repository documents an academic Project-Based Learning (PBL) initiative exploring **Inter-Process Communication (IPC)** mechanisms and **CPU Process Scheduling** under POSIX-compliant operating systems. The project is developed collaboratively with weekly milestones spanning fundamental IPC paradigms, a decoupled multi-process CPU simulator, and comprehensive process scheduling analytics.
 
 ---
 
@@ -14,6 +14,7 @@ This repository documents an academic Project-Based Learning (PBL) initiative ex
 graph TD
     Root["PBL Project Root"]
     Root --> W2["week2/ - Multi-Process Simulator"]
+    Root --> W3["week3/ - Process Scheduling Simulator"]
     Root --> Pipes["pipes/ - Pipes IPC"]
     Root --> MQ["msgqueue/ - Message Queues IPC"]
     Root --> SHM["sharedmem/ - Shared Memory IPC"]
@@ -22,6 +23,10 @@ graph TD
     W2 --> UI["UI Process (ui.c)"]
     W2 --> Core["Core Process (core.c)"]
     W2 --> Logger["Logger Process (logger.c)"]
+
+    W3 --> Sched["Scheduler CLI (scheduler.c)"]
+    W3 --> Algo["6 Algorithms (algorithms.c)"]
+    W3 --> Gantt["Gantt & Tables (gantt.c)"]
 ```
 
 ---
@@ -38,7 +43,16 @@ The Week 2 milestone breaks a monolithic CPU simulator into three independent co
 
 For complete compilation instructions, start order guidelines, and command references, see the [Week 2 Documentation](week2/README.md).
 
-### 2. Fundamental IPC Techniques
+### 2. CPU Process Scheduling Simulator (`week3/`)
+
+The Week 3 milestone implements an interactive CPU scheduling simulator evaluating standard operating system dispatch policies:
+
+* **Algorithms Implemented:** FCFS, SJF (Non-preemptive), SRTF (Preemptive SJF), Priority (Non-preemptive), Priority (Preemptive), and Round Robin (configurable Time Quantum).
+* **Metrics Calculated:** Turnaround Time ($TAT$), Waiting Time ($WT$), Response Time ($RT$), and CPU Utilization.
+* **Visualization:** Text/ASCII Gantt charts and a side-by-side comparison matrix evaluating all algorithms concurrently on identical datasets.
+* **Deliverables:** Built-in benchmark presets, full usage guide in [Week 3 Documentation](week3/README.md), and formal evaluation in [Week 3 Report](week3/report.md).
+
+### 3. Fundamental IPC Techniques
 
 The repository includes dedicated directories analyzing foundational POSIX IPC mechanisms:
 
@@ -66,27 +80,30 @@ The repository includes dedicated directories analyzing foundational POSIX IPC m
 
 ### Environment Requirements
 * **Operating System:** Linux, macOS, or Windows Subsystem for Linux (WSL)
-* **Compiler:** `gcc` (with POSIX.1-2008 support)
+* **Compiler:** `gcc` (with POSIX.1-2008 and C99 support)
 * **Libraries:** Real-time library (`-lrt`)
 * **Build System:** GNU Make
 
-### Quick Start: Building and Running the Simulator
+### Quick Start: Building and Running the Milestones
 
-To compile and launch the multi-process simulator:
-
+**Week 2 (Multi-Process Simulator):**
 ```bash
-# Navigate to the Week 2 simulator directory
 cd week2
-
-# Compile all three process binaries
 make all
-
-# Launch processes in required startup order (Logger -> Core -> UI)
 chmod +x run_simulator.sh
 ./run_simulator.sh
 ```
 
-To clean compiled binaries and generated log files:
+**Week 3 (Process Scheduling Simulator):**
 ```bash
-make clean
+cd week3
+make all
+./scheduler          # Interactive mode
+./scheduler --compare # Comparative matrix across all 6 algorithms
+```
+
+To clean compiled binaries:
+```bash
+make -C week2 clean
+make -C week3 clean
 ```
