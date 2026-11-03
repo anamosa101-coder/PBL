@@ -1,0 +1,2447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Replacement Algorithms Simulator | OS PBL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(16, 22, 38, 0.75);
+      --bg-card-hover: rgba(22, 30, 52, 0.85);
+      --bg-input: rgba(9, 13, 25, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(124, 77, 255, 0.6);
+      
+      --accent-purple: #7c4dff;
+      --accent-purple-glow: rgba(124, 77, 255, 0.35);
+      --accent-teal: #00e5cc;
+      --accent-teal-glow: rgba(0, 229, 204, 0.35);
+      --accent-fault: #ff3366;
+      --accent-fault-glow: rgba(255, 51, 102, 0.35);
+      --accent-hit: #00e5cc;
+      --accent-hit-glow: rgba(0, 229, 204, 0.35);
+      --accent-gold: #ffd700;
+      --accent-gold-glow: rgba(255, 215, 0, 0.4);
+      --accent-blue: #38bdf8;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 25%, rgba(0, 229, 204, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(255, 51, 102, 0.06) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 24px 20px 60px;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 15, 26, 0.6);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(124, 77, 255, 0.5);
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-purple), #4a148c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px var(--accent-purple-glow);
+    }
+
+    .brand-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(124, 77, 255, 0.18);
+      border: 1px solid rgba(124, 77, 255, 0.4);
+      color: #d8b4fe;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-secondary-link {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-secondary-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Glass Panels */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: rgba(124, 77, 255, 0.15);
+      color: var(--accent-purple);
+      font-size: 0.9rem;
+    }
+
+    /* Input Grid */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .input-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-label span.hint {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-styled {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    .input-styled:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 15px var(--accent-purple-glow);
+      background: rgba(13, 18, 35, 0.95);
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 11px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .chip-btn:hover {
+      background: rgba(124, 77, 255, 0.15);
+      border-color: rgba(124, 77, 255, 0.4);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .chip-btn.active-preset {
+      background: rgba(0, 229, 204, 0.15);
+      border-color: rgba(0, 229, 204, 0.4);
+      color: var(--accent-teal);
+    }
+
+    /* Algorithm Selector Segmented Tabs */
+    .algo-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .algo-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: rgba(10, 14, 26, 0.6);
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 768px) {
+      .algo-tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .algo-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+
+    .algo-tab-btn span.tab-title {
+      font-size: 0.95rem;
+    }
+
+    .algo-tab-btn span.tab-desc {
+      font-size: 0.7rem;
+      font-family: var(--font-body);
+      font-weight: 400;
+      color: var(--text-dim);
+    }
+
+    .algo-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .algo-tab-btn.active {
+      background: linear-gradient(135deg, rgba(124, 77, 255, 0.35), rgba(74, 20, 140, 0.5));
+      border: 1px solid rgba(124, 77, 255, 0.6);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+    }
+
+    .algo-tab-btn.active span.tab-desc {
+      color: #e2e8f0;
+    }
+
+    .algo-tab-btn.compare-tab.active {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 145, 0, 0.3));
+      border-color: rgba(255, 215, 0, 0.6);
+      color: #ffd700;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+    }
+
+    .algo-tab-btn.compare-tab.active span.tab-desc {
+      color: #fef08a;
+    }
+
+    /* Simulation Control Bar */
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .main-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-simulate {
+      background: linear-gradient(135deg, var(--accent-purple), #6200ea);
+      border: none;
+      color: #ffffff;
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 20px var(--accent-purple-glow);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-simulate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(124, 77, 255, 0.55);
+      background: linear-gradient(135deg, #8c5ff8, #6d10f4);
+    }
+
+    .btn-simulate:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 11px 18px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Live Stepper HUD */
+    .stepper-hud {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: rgba(12, 17, 30, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      margin-bottom: 20px;
+    }
+
+    .stepper-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .step-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+    }
+
+    .step-btn:hover:not(:disabled) {
+      background: rgba(124, 77, 255, 0.2);
+      border-color: var(--accent-purple);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .step-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .step-btn.btn-play-pause {
+      width: auto;
+      padding: 0 16px;
+      gap: 8px;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.88rem;
+      background: rgba(0, 229, 204, 0.12);
+      border-color: rgba(0, 229, 204, 0.4);
+      color: var(--accent-teal);
+    }
+
+    .step-btn.btn-play-pause:hover:not(:disabled) {
+      background: rgba(0, 229, 204, 0.25);
+      border-color: var(--accent-teal);
+      box-shadow: 0 0 16px var(--accent-teal-glow);
+    }
+
+    .step-btn.btn-play-pause.playing {
+      background: rgba(255, 51, 102, 0.15);
+      border-color: rgba(255, 51, 102, 0.5);
+      color: var(--accent-fault);
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .speed-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .step-counter-badge {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .live-metrics-chips {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .mini-metric {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+    }
+
+    .mini-metric.faults {
+      background: rgba(255, 51, 102, 0.12);
+      border: 1px solid rgba(255, 51, 102, 0.35);
+      color: var(--accent-fault);
+    }
+
+    .mini-metric.hits {
+      background: rgba(0, 229, 204, 0.12);
+      border: 1px solid rgba(0, 229, 204, 0.35);
+      color: var(--accent-hit);
+    }
+
+    /* Live Explanation Card */
+    .step-narrative {
+      background: rgba(14, 20, 36, 0.9);
+      border-left: 4px solid var(--accent-purple);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 14px 20px;
+      margin-bottom: 22px;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+    }
+
+    .step-narrative.is-fault {
+      border-left-color: var(--accent-fault);
+      background: rgba(255, 51, 102, 0.05);
+    }
+
+    .step-narrative.is-hit {
+      border-left-color: var(--accent-hit);
+      background: rgba(0, 229, 204, 0.05);
+    }
+
+    .step-narrative .narrative-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .step-narrative .narrative-body {
+      flex: 1;
+    }
+
+    .step-narrative .narrative-body strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Step Scrubber / Progress slider */
+    .scrubber-wrap {
+      margin-bottom: 20px;
+    }
+
+    .scrubber-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .scrubber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-purple);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-purple-glow);
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .scrubber-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: #a855f7;
+    }
+
+    /* Simulation Table Wrapper */
+    .table-container {
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .frame-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px 6px;
+      min-width: 680px;
+    }
+
+    .frame-table th, 
+    .frame-table td {
+      text-align: center;
+      padding: 10px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.25s ease;
+    }
+
+    .frame-table th.row-label, 
+    .frame-table td.row-label {
+      text-align: left;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      background: transparent;
+      white-space: nowrap;
+      padding-left: 4px;
+      width: 130px;
+    }
+
+    /* Table Column Header: Page References */
+    .th-page-ref {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 1rem;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .th-page-ref.active-step-col {
+      background: rgba(124, 77, 255, 0.25);
+      border-color: var(--accent-purple);
+      color: #ffffff;
+      box-shadow: 0 0 16px var(--accent-purple-glow);
+    }
+
+    .th-page-ref.future-step {
+      opacity: 0.35;
+    }
+
+    /* Frame Cells */
+    .td-frame-cell {
+      background: rgba(15, 20, 35, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      height: 48px;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .td-frame-cell.empty-slot {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .td-frame-cell.active-frame-step {
+      background: rgba(20, 28, 50, 0.95);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+    }
+
+    .td-frame-cell.fault-incoming {
+      background: rgba(255, 51, 102, 0.25);
+      border: 1px solid var(--accent-fault);
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--accent-fault-glow);
+      font-weight: 700;
+      transform: scale(1.04);
+      z-index: 2;
+    }
+
+    .td-frame-cell.hit-incoming {
+      background: rgba(0, 229, 204, 0.22);
+      border: 1px solid var(--accent-hit);
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--accent-hit-glow);
+      font-weight: 700;
+      transform: scale(1.04);
+      z-index: 2;
+    }
+
+    .td-frame-cell.future-cell {
+      opacity: 0.25;
+      background: rgba(10, 14, 25, 0.4);
+      border-style: dashed;
+    }
+
+    /* Status Badges */
+    .td-status-cell {
+      padding: 6px 4px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      width: 100%;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .status-badge.badge-fault {
+      background: rgba(255, 51, 102, 0.18);
+      border: 1px solid rgba(255, 51, 102, 0.5);
+      color: var(--accent-fault);
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.2);
+    }
+
+    .status-badge.badge-hit {
+      background: rgba(0, 229, 204, 0.18);
+      border: 1px solid rgba(0, 229, 204, 0.5);
+      color: var(--accent-hit);
+      box-shadow: 0 0 10px rgba(0, 229, 204, 0.2);
+    }
+
+    .td-evict-cell {
+      font-size: 0.8rem;
+      color: #fca5a5;
+    }
+
+    .future-status {
+      opacity: 0.2;
+    }
+
+    /* Performance Summary Dashboard */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: rgba(14, 19, 34, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: var(--font-heading);
+      font-size: 2.1rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-main);
+    }
+
+    .stat-card.stat-faults .stat-value {
+      color: var(--accent-fault);
+      text-shadow: 0 0 20px var(--accent-fault-glow);
+    }
+
+    .stat-card.stat-hits .stat-value {
+      color: var(--accent-hit);
+      text-shadow: 0 0 20px var(--accent-hit-glow);
+    }
+
+    .stat-card.stat-ratio .stat-value {
+      color: var(--accent-purple);
+      text-shadow: 0 0 20px var(--accent-purple-glow);
+    }
+
+    /* Progress Meters */
+    .ratios-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .ratios-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ratio-box {
+      background: rgba(12, 17, 30, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+    }
+
+    .ratio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .ratio-progress-bg {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ratio-progress-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ratio-progress-fill.fill-fault {
+      background: linear-gradient(90deg, #ff3366, #ff758c);
+      box-shadow: 0 0 12px var(--accent-fault-glow);
+    }
+
+    .ratio-progress-fill.fill-hit {
+      background: linear-gradient(90deg, #00b4d8, #00e5cc);
+      box-shadow: 0 0 12px var(--accent-hit-glow);
+    }
+
+    .formula-note {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    /* Compare All Section */
+    .comparison-section {
+      display: none;
+    }
+
+    .comparison-section.visible {
+      display: block;
+    }
+
+    .single-mode-section {
+      display: block;
+    }
+
+    .single-mode-section.hidden {
+      display: none;
+    }
+
+    /* Compare Winner Banner */
+    .winner-banner {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(255, 145, 0, 0.06));
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      border-radius: var(--radius-md);
+      padding: 16px 22px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 0 24px rgba(255, 215, 0, 0.15);
+    }
+
+    .winner-trophy {
+      font-size: 2.2rem;
+      filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+    }
+
+    .winner-details h3 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      color: var(--accent-gold);
+      font-weight: 700;
+    }
+
+    .winner-details p {
+      color: #fef08a;
+      font-size: 0.9rem;
+    }
+
+    /* Comparison Table */
+    .comp-table-wrap {
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .comp-table th {
+      background: rgba(20, 26, 45, 0.8);
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .comp-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.92rem;
+    }
+
+    .comp-table tr.winner-row {
+      background: rgba(255, 215, 0, 0.06);
+    }
+
+    .comp-table tr.winner-row td {
+      color: #ffffff;
+      font-weight: 600;
+      border-top: 1px solid rgba(255, 215, 0, 0.25);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.25);
+    }
+
+    .comp-algo-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-best {
+      background: linear-gradient(135deg, #ffd700, #ff9100);
+      color: #000000;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    /* Canvas Chart */
+    .chart-box {
+      background: rgba(11, 16, 29, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .chart-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .legend-color.fault-col {
+      background: var(--accent-fault);
+    }
+
+    .legend-color.hit-col {
+      background: var(--accent-hit);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    #compareChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Belady Anomaly Box */
+    .belady-box {
+      background: rgba(124, 77, 255, 0.05);
+      border: 1px dashed rgba(124, 77, 255, 0.4);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .belady-desc h4 {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      color: #d8b4fe;
+      margin-bottom: 4px;
+    }
+
+    .belady-desc p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Educational Footer Note */
+    .info-footer {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    @media (max-width: 850px) {
+      .info-footer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-card {
+      background: rgba(14, 20, 36, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+    }
+
+    .info-card h4 {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Modals / Tooltips */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #0f162a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-lg);
+      max-width: 650px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0;
+      }
+      .glass-card, .stat-card, .stepper-hud {
+        background: #ffffff !important;
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+      }
+      .stepper-hud, .preset-chips, .algo-tabs, .controls-row, .modal-overlay, header .header-actions {
+        display: none !important;
+      }
+      .th-page-ref, .td-frame-cell {
+        color: #000000 !important;
+        border: 1px solid #999 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Page Replacement Simulator</h1>
+          <p>
+            <span>Operating Systems PBL Project</span>
+            <span class="badge-pill">Virtual Memory</span>
+          </p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary-link" id="btnHelp" title="View Concept & Viva Cheat Sheet">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/></svg>
+          Theory & Viva Guide
+        </button>
+        <button class="btn-secondary-link" id="btnPrint" title="Print or Export Results">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/></svg>
+          Print / PDF
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Configuration Panel -->
+    <section class="glass-card">
+      <div class="card-title">
+        <span class="icon-chip">⚙</span>
+        <span>Simulation Parameters & Page Reference String</span>
+      </div>
+
+      <div class="input-grid">
+        <!-- Reference string input -->
+        <div class="form-group">
+          <label class="form-label" for="pageRefInput">
+            <span>Page Reference String</span>
+            <span class="hint">Space or comma separated integers</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="text" id="pageRefInput" class="input-styled" placeholder="e.g. 7 0 1 2 0 3 0 4 2 3" value="7 0 1 2 0 3 0 4 2 3">
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" id="btnLoadExample" title="Load Default PBL Example">
+              <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>
+              Standard Example (7 0 1 2...)
+            </button>
+            <button class="chip-btn" id="btnPresetBelady" title="Load Belady's Anomaly test case">
+              ⚡ Belady's Anomaly (1 2 3 4 1 2 5...)
+            </button>
+            <button class="chip-btn" id="btnPresetLocality" title="Load High Locality pattern">
+              🔄 High Locality
+            </button>
+            <button class="chip-btn" id="btnGenerateRandom" title="Generate random page references">
+              🎲 Random String
+            </button>
+            <button class="chip-btn" id="btnClearInput" title="Clear inputs">
+              ✕ Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Frame Count -->
+        <div class="form-group">
+          <label class="form-label" for="frameCountInput">
+            <span>Physical Memory Frames</span>
+            <span class="hint">Slots in RAM (1 - 8)</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="number" id="frameCountInput" class="input-styled" min="1" max="8" value="3">
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn frame-quick-btn" data-frames="3">3 Frames</button>
+            <button class="chip-btn frame-quick-btn" data-frames="4">4 Frames</button>
+            <button class="chip-btn frame-quick-btn" data-frames="5">5 Frames</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Algorithm Selector -->
+      <div class="algo-section">
+        <label class="form-label" style="margin-bottom: 10px;">Select Simulation Mode</label>
+        <div class="algo-tabs" role="tablist">
+          <button class="algo-tab-btn active" data-algo="FIFO" role="tab" id="tabFIFO">
+            <span class="tab-title">FIFO</span>
+            <span class="tab-desc">First In, First Out (Queue)</span>
+          </button>
+          <button class="algo-tab-btn" data-algo="LRU" role="tab" id="tabLRU">
+            <span class="tab-title">LRU</span>
+            <span class="tab-desc">Least Recently Used (Past)</span>
+          </button>
+          <button class="algo-tab-btn" data-algo="OPT" role="tab" id="tabOPT">
+            <span class="tab-title">Optimal</span>
+            <span class="tab-desc">Bélády's Algorithm (Future)</span>
+          </button>
+          <button class="algo-tab-btn compare-tab" data-algo="COMPARE" role="tab" id="tabCOMPARE">
+            <span class="tab-title">⚡ Compare All</span>
+            <span class="tab-desc">FIFO vs LRU vs Optimal</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="controls-row">
+        <div class="main-actions">
+          <button class="btn-simulate" id="btnSimulate">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/></svg>
+            Simulate Execution
+          </button>
+        </div>
+        <div class="hint-text" style="font-size: 0.85rem; color: var(--text-dim);">
+          Tip: Use Step Forward & Auto Play to present step-by-step memory allocation during viva.
+        </div>
+      </div>
+    </section>
+
+    <!-- SINGLE ALGORITHM STEP-BY-STEP WORKSPACE -->
+    <section class="single-mode-section" id="singleModeSection">
+      
+      <!-- Stepper Controls & Live Counter HUD -->
+      <div class="stepper-hud">
+        <div class="stepper-buttons">
+          <button class="step-btn" id="btnStepReset" title="Reset to Start (Step 0)">⏮</button>
+          <button class="step-btn" id="btnStepBack" title="Step Back (Previous Reference)">◀</button>
+          <button class="step-btn btn-play-pause" id="btnAutoPlay" title="Auto-advance through execution">
+            <span id="playIcon">▶</span>
+            <span id="playText">Auto Play</span>
+          </button>
+          <button class="step-btn" id="btnStepForward" title="Step Forward (Next Reference)">▶</button>
+          <button class="step-btn" id="btnStepEnd" title="Jump to Final Step">⏭</button>
+        </div>
+
+        <div class="speed-control">
+          <span>Speed:</span>
+          <select id="speedSelect" class="speed-select">
+            <option value="1200">0.5x Slow</option>
+            <option value="750" selected>1.0x Normal</option>
+            <option value="400">2.0x Fast</option>
+            <option value="200">3.5x Rapid</option>
+          </select>
+        </div>
+
+        <div class="step-counter-badge" id="stepCounterBadge">
+          Step: 0 / 0
+        </div>
+
+        <div class="live-metrics-chips">
+          <div class="mini-metric faults" id="miniFaultsBadge">
+            <span>Faults: </span><span id="hudFaultCount">0</span>
+          </div>
+          <div class="mini-metric hits" id="miniHitsBadge">
+            <span>Hits: </span><span id="hudHitCount">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrubber slider -->
+      <div class="scrubber-wrap">
+        <input type="range" id="stepScrubber" class="scrubber-slider" min="0" max="0" value="0">
+      </div>
+
+      <!-- Step Narrative Card -->
+      <div class="step-narrative" id="stepNarrative">
+        <div class="narrative-icon" id="narrativeIcon">💡</div>
+        <div class="narrative-body" id="narrativeBody">
+          Ready to simulate. Click <strong>Simulate Execution</strong> or <strong>Step Forward</strong> to begin memory frame tracing.
+        </div>
+      </div>
+
+      <!-- Step-by-Step Frame Matrix Table Card -->
+      <div class="glass-card" style="padding: 20px;">
+        <div class="card-title" style="justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="icon-chip">▦</span>
+            <span id="matrixTableHeading">Memory Allocation Matrix (FIFO)</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 14px; align-items: center;">
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+              <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-fault);"></span> Fault
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+              <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-hit);"></span> Hit
+            </span>
+          </div>
+        </div>
+
+        <div class="table-container" id="tableContainer">
+          <table class="frame-table" id="simulationTable">
+            <!-- Dynamically populated -->
+          </table>
+        </div>
+      </div>
+
+      <!-- Performance Summary (Single Algorithm) -->
+      <div class="glass-card" id="performanceSummaryCard">
+        <div class="card-title">
+          <span class="icon-chip">📊</span>
+          <span>Simulation Performance Summary</span>
+        </div>
+
+        <div class="summary-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total References</div>
+            <div class="stat-value" id="summaryTotalRefs">0</div>
+          </div>
+          <div class="stat-card stat-faults">
+            <div class="stat-label">Page Faults</div>
+            <div class="stat-value" id="summaryFaults">0</div>
+          </div>
+          <div class="stat-card stat-hits">
+            <div class="stat-label">Page Hits</div>
+            <div class="stat-value" id="summaryHits">0</div>
+          </div>
+          <div class="stat-card stat-ratio">
+            <div class="stat-label">Hit Ratio</div>
+            <div class="stat-value" id="summaryHitRatio">0.0%</div>
+          </div>
+        </div>
+
+        <div class="ratios-container">
+          <!-- Hit Ratio Meter -->
+          <div class="ratio-box">
+            <div class="ratio-header">
+              <span style="color: var(--accent-hit);">Page Hit Ratio</span>
+              <span id="meterHitRatioVal" style="color: var(--accent-hit); font-family: var(--font-mono);">0.0%</span>
+            </div>
+            <div class="ratio-progress-bg">
+              <div class="ratio-progress-fill fill-hit" id="meterHitFill" style="width: 0%;"></div>
+            </div>
+            <div class="formula-note">Hit Ratio = (Total Hits / Total References) × 100%</div>
+          </div>
+
+          <!-- Fault Ratio Meter -->
+          <div class="ratio-box">
+            <div class="ratio-header">
+              <span style="color: var(--accent-fault);">Page Fault Ratio (Miss Rate)</span>
+              <span id="meterFaultRatioVal" style="color: var(--accent-fault); font-family: var(--font-mono);">0.0%</span>
+            </div>
+            <div class="ratio-progress-bg">
+              <div class="ratio-progress-fill fill-fault" id="meterFaultFill" style="width: 0%;"></div>
+            </div>
+            <div class="formula-note">Fault Ratio = (Total Faults / Total References) × 100%</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- COMPARE ALL MULTI-ALGORITHM SECTION -->
+    <section class="comparison-section" id="comparisonSection">
+      
+      <!-- Winner Banner -->
+      <div class="winner-banner" id="winnerBanner">
+        <div class="winner-trophy">🏆</div>
+        <div class="winner-details">
+          <h3 id="winnerText">Best Algorithm: Optimal (Fewest Page Faults)</h3>
+          <p id="winnerSubtext">Achieved the minimum page fault rate of 60.0% across the reference sequence.</p>
+        </div>
+      </div>
+
+      <!-- Comparison Metrics Table -->
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="icon-chip">⚖</span>
+          <span>Side-by-Side Algorithm Benchmark</span>
+        </div>
+
+        <div class="comp-table-wrap">
+          <table class="comp-table" id="comparisonTable">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Page Hits</th>
+                <th>Page Faults</th>
+                <th>Hit Ratio</th>
+                <th>Fault Ratio</th>
+                <th>Performance Status</th>
+              </tr>
+            </thead>
+            <tbody id="comparisonTableBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Canvas Visual Bar Chart -->
+        <div class="chart-box">
+          <div class="chart-header">
+            <div class="chart-title">Faults vs Hits Comparative Chart</div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-color fault-col"></span>
+                <span>Page Faults (Lower is Better)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color hit-col"></span>
+                <span>Page Hits (Higher is Better)</span>
+              </div>
+            </div>
+          </div>
+          <div class="canvas-container">
+            <canvas id="compareChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Belady's Anomaly Experimenter Box -->
+        <div class="belady-box">
+          <div class="belady-desc">
+            <h4>Belady's Anomaly Test Lab</h4>
+            <p>Demonstrates how increasing frame allocation under FIFO can paradoxically <em>increase</em> page faults.</p>
+          </div>
+          <button class="btn-secondary" id="btnRunBeladyDemo">
+            ⚡ Run Belady Demo (3 vs 4 Frames)
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Academic & Viva Knowledge Section -->
+    <footer class="info-footer">
+      <div class="info-card">
+        <h4><span>📁</span> FIFO (First-In, First-Out)</h4>
+        <p>Simple queue-based eviction. Evicts the page resident in memory the longest. Prone to <strong>Bélády's Anomaly</strong> where adding frames may increase page faults.</p>
+      </div>
+      <div class="info-card">
+        <h4><span>🕒</span> LRU (Least Recently Used)</h4>
+        <p>Evicts the page that hasn't been accessed for the longest time in the past. Requires hardware support (timestamps or stack) and belongs to the class of stack algorithms.</p>
+      </div>
+      <div class="info-card">
+        <h4><span>🔮</span> Optimal (Bélády's OPT)</h4>
+        <p>Evicts the page that will not be used for the longest period in the future. Serves as the theoretical benchmark (lowest faults), but impossible to implement in real OS.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Theory & Viva Guide Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-content">
+      <button class="modal-close" id="btnCloseHelpModal">✕</button>
+      <h2 style="font-family: var(--font-heading); margin-bottom: 12px; color: #fff;">Operating Systems Viva Cheat Sheet</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Key concepts, formulas, and oral defense questions for college OS PBL presentations.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.88rem; line-height: 1.6;">
+        <div style="background: rgba(255,255,255,0.04); padding: 14px; border-radius: 8px;">
+          <h4 style="color: var(--accent-purple); margin-bottom: 4px;">1. What triggers a Page Fault?</h4>
+          <p style="color: #cbd5e1;">A page fault occurs when a process attempts to access a virtual memory page that is currently not mapped into physical RAM (valid-invalid bit is 0 in the page table).</p>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.04); padding: 14px; border-radius: 8px;">
+          <h4 style="color: var(--accent-hit); margin-bottom: 4px;">2. What is Belady's Anomaly?</h4>
+          <p style="color: #cbd5e1;">A phenomenon in FIFO where increasing the number of physical memory frames leads to an <em>increase</em> (rather than decrease) in the number of page faults. Stack algorithms like LRU and OPT are immune.</p>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.04); padding: 14px; border-radius: 8px;">
+          <h4 style="color: var(--accent-fault); margin-bottom: 4px;">3. Why can't Optimal be used in production OS?</h4>
+          <p style="color: #cbd5e1;">Because it requires <em>future knowledge</em> of the process's page reference string, which cannot be predicted deterministically. It is used as an ideal upper-bound benchmark.</p>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.04); padding: 14px; border-radius: 8px;">
+          <h4 style="color: var(--accent-gold); margin-bottom: 4px;">4. Performance Metric Formulas</h4>
+          <p style="font-family: var(--font-mono); color: #fef08a; font-size: 0.82rem;">
+            Hit Ratio (%) = (Hits / (Hits + Faults)) × 100<br>
+            Fault Ratio (%) = (Faults / (Hits + Faults)) × 100<br>
+            Hit Ratio + Fault Ratio = 100%
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * PAGE REPLACEMENT ALGORITHMS SIMULATOR
+     * Pure JavaScript Implementation
+     * Supports: FIFO, LRU, Optimal & Compare All Mode
+     */
+
+    // --- State Management ---
+    const state = {
+      referenceString: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
+      frameCount: 3,
+      currentAlgo: 'FIFO', // 'FIFO' | 'LRU' | 'OPT' | 'COMPARE'
+      
+      // Simulation Trace Data
+      simResult: null,       // Result for current selected algorithm
+      compareResults: {},    // Results for all three algorithms in Compare mode
+      
+      // Step-by-Step Stepper State
+      currentStep: 0,
+      isPlaying: false,
+      autoPlayTimer: null,
+      autoPlayDelay: 750
+    };
+
+    // --- DOM Elements ---
+    const pageRefInput = document.getElementById('pageRefInput');
+    const frameCountInput = document.getElementById('frameCountInput');
+    const btnSimulate = document.getElementById('btnSimulate');
+    const btnLoadExample = document.getElementById('btnLoadExample');
+    const btnPresetBelady = document.getElementById('btnPresetBelady');
+    const btnPresetLocality = document.getElementById('btnPresetLocality');
+    const btnGenerateRandom = document.getElementById('btnGenerateRandom');
+    const btnClearInput = document.getElementById('btnClearInput');
+    const algoTabs = document.querySelectorAll('.algo-tab-btn');
+    
+    const singleModeSection = document.getElementById('singleModeSection');
+    const comparisonSection = document.getElementById('comparisonSection');
+
+    // Stepper Controls
+    const btnStepReset = document.getElementById('btnStepReset');
+    const btnStepBack = document.getElementById('btnStepBack');
+    const btnAutoPlay = document.getElementById('btnAutoPlay');
+    const btnStepForward = document.getElementById('btnStepForward');
+    const btnStepEnd = document.getElementById('btnStepEnd');
+    const speedSelect = document.getElementById('speedSelect');
+    const stepCounterBadge = document.getElementById('stepCounterBadge');
+    const stepScrubber = document.getElementById('stepScrubber');
+    const hudFaultCount = document.getElementById('hudFaultCount');
+    const hudHitCount = document.getElementById('hudHitCount');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const stepNarrative = document.getElementById('stepNarrative');
+    const narrativeIcon = document.getElementById('narrativeIcon');
+    const narrativeBody = document.getElementById('narrativeBody');
+    const simulationTable = document.getElementById('simulationTable');
+    const matrixTableHeading = document.getElementById('matrixTableHeading');
+
+    // Summary Elements
+    const summaryTotalRefs = document.getElementById('summaryTotalRefs');
+    const summaryFaults = document.getElementById('summaryFaults');
+    const summaryHits = document.getElementById('summaryHits');
+    const summaryHitRatio = document.getElementById('summaryHitRatio');
+    const meterHitRatioVal = document.getElementById('meterHitRatioVal');
+    const meterFaultRatioVal = document.getElementById('meterFaultRatioVal');
+    const meterHitFill = document.getElementById('meterHitFill');
+    const meterFaultFill = document.getElementById('meterFaultFill');
+
+    // Comparison Elements
+    const winnerBanner = document.getElementById('winnerBanner');
+    const winnerText = document.getElementById('winnerText');
+    const winnerSubtext = document.getElementById('winnerSubtext');
+    const comparisonTableBody = document.getElementById('comparisonTableBody');
+    const compareChart = document.getElementById('compareChart');
+    const btnRunBeladyDemo = document.getElementById('btnRunBeladyDemo');
+
+    // Modals
+    const btnHelp = document.getElementById('btnHelp');
+    const btnCloseHelpModal = document.getElementById('btnCloseHelpModal');
+    const helpModal = document.getElementById('helpModal');
+    const btnPrint = document.getElementById('btnPrint');
+
+    // --- Core Algorithms Implementation ---
+
+    /**
+     * Simulates page replacement for a given algorithm
+     * @param {'FIFO'|'LRU'|'OPT'} algo 
+     * @param {number[]} refs 
+     * @param {number} frameCount 
+     * @returns {Object} Simulation trace and statistics
+     */
+    function executeAlgorithm(algo, refs, frameCount) {
+      const frames = new Array(frameCount).fill(null);
+      const loadedAt = new Array(frameCount).fill(-1); // For FIFO arrival order
+      const lastUsedAt = new Array(frameCount).fill(-1); // For LRU last access
+      
+      let faults = 0;
+      let hits = 0;
+      const steps = [];
+
+      for (let t = 0; t < refs.length; t++) {
+        const page = refs[t];
+        const hitIndex = frames.indexOf(page);
+
+        if (hitIndex !== -1) {
+          // Page Hit!
+          hits++;
+          lastUsedAt[hitIndex] = t;
+
+          steps.push({
+            stepIndex: t,
+            page: page,
+            status: 'HIT',
+            targetFrame: hitIndex,
+            evictedPage: null,
+            frames: [...frames],
+            runningFaults: faults,
+            runningHits: hits,
+            explanation: `Page <strong>${page}</strong> is already present in Frame ${hitIndex}. <strong>HIT!</strong> No page eviction needed.`
+          });
+        } else {
+          // Page Fault!
+          faults++;
+          const emptySlotIndex = frames.indexOf(null);
+          let targetFrame = -1;
+          let evictedPage = null;
+          let evictionReason = '';
+
+          if (emptySlotIndex !== -1) {
+            // Free frame available
+            targetFrame = emptySlotIndex;
+            evictionReason = `Empty slot available in Frame ${targetFrame}.`;
+          } else {
+            // Frames full; eviction strategy based on algorithm
+            if (algo === 'FIFO') {
+              let minLoad = Infinity;
+              for (let i = 0; i < frameCount; i++) {
+                if (loadedAt[i] < minLoad) {
+                  minLoad = loadedAt[i];
+                  targetFrame = i;
+                }
+              }
+              evictedPage = frames[targetFrame];
+              evictionReason = `Frames full. Evicting Page <strong>${evictedPage}</strong> from Frame ${targetFrame} (Oldest in memory, loaded at Step ${loadedAt[targetFrame] + 1}).`;
+            } else if (algo === 'LRU') {
+              let minUse = Infinity;
+              for (let i = 0; i < frameCount; i++) {
+                if (lastUsedAt[i] < minUse) {
+                  minUse = lastUsedAt[i];
+                  targetFrame = i;
+                }
+              }
+              evictedPage = frames[targetFrame];
+              evictionReason = `Frames full. Evicting Page <strong>${evictedPage}</strong> from Frame ${targetFrame} (Least recently accessed at Step ${lastUsedAt[targetFrame] + 1}).`;
+            } else if (algo === 'OPT') {
+              let maxNextUse = -1;
+              for (let i = 0; i < frameCount; i++) {
+                let nextUse = Infinity;
+                for (let future = t + 1; future < refs.length; future++) {
+                  if (refs[future] === frames[i]) {
+                    nextUse = future;
+                    break;
+                  }
+                }
+                if (nextUse > maxNextUse) {
+                  maxNextUse = nextUse;
+                  targetFrame = i;
+                } else if (nextUse === maxNextUse && nextUse === Infinity) {
+                  // Tie break by earliest loaded (FIFO tie-break)
+                  if (loadedAt[i] < loadedAt[targetFrame]) {
+                    targetFrame = i;
+                  }
+                }
+              }
+              evictedPage = frames[targetFrame];
+              const futureDesc = maxNextUse === Infinity ? 'not used again in future' : `next referenced latest at Step ${maxNextUse + 1}`;
+              evictionReason = `Frames full. Evicting Page <strong>${evictedPage}</strong> from Frame ${targetFrame} (${futureDesc}).`;
+            }
+          }
+
+          // Commit change
+          frames[targetFrame] = page;
+          loadedAt[targetFrame] = t;
+          lastUsedAt[targetFrame] = t;
+
+          steps.push({
+            stepIndex: t,
+            page: page,
+            status: 'FAULT',
+            targetFrame: targetFrame,
+            evictedPage: evictedPage,
+            frames: [...frames],
+            runningFaults: faults,
+            runningHits: hits,
+            explanation: `Page <strong>${page}</strong> requested. Not in memory → <strong>PAGE FAULT!</strong> ${evictionReason} Page <strong>${page}</strong> placed into Frame ${targetFrame}.`
+          });
+        }
+      }
+
+      const total = refs.length;
+      const hitRatio = total > 0 ? (hits / total) * 100 : 0;
+      const faultRatio = total > 0 ? (faults / total) * 100 : 0;
+
+      return {
+        algo,
+        refs,
+        frameCount,
+        totalRefs: total,
+        hits,
+        faults,
+        hitRatio: parseFloat(hitRatio.toFixed(2)),
+        faultRatio: parseFloat(faultRatio.toFixed(2)),
+        steps
+      };
+    }
+
+    // --- Parser & Validation ---
+    function parseReferenceString(rawStr) {
+      if (!rawStr || !rawStr.trim()) return [];
+      return rawStr
+        .trim()
+        .split(/[\s,]+/)
+        .map(v => parseInt(v, 10))
+        .filter(v => !isNaN(v) && v >= 0);
+    }
+
+    function validateInputs() {
+      const refs = parseReferenceString(pageRefInput.value);
+      let frames = parseInt(frameCountInput.value, 10);
+
+      if (refs.length === 0) {
+        alert('Please enter a valid page reference string (e.g., 7 0 1 2 0 3 0 4 2 3)');
+        pageRefInput.focus();
+        return false;
+      }
+      if (isNaN(frames) || frames < 1) {
+        frames = 3;
+        frameCountInput.value = 3;
+      }
+      if (frames > 8) {
+        frames = 8;
+        frameCountInput.value = 8;
+      }
+
+      state.referenceString = refs;
+      state.frameCount = frames;
+      return true;
+    }
+
+    // --- UI Rendering Functions ---
+
+    /**
+     * Builds and updates the frame matrix table
+     */
+    function renderSimulationTable() {
+      if (!state.simResult) return;
+
+      const { refs, frameCount, steps } = state.simResult;
+      const curStepIdx = state.currentStep; // 0-indexed, up to refs.length
+
+      let html = '';
+
+      // Header row: Page references
+      html += '<thead><tr><th class="row-label">Ref String</th>';
+      for (let i = 0; i < refs.length; i++) {
+        let colClass = 'th-page-ref';
+        if (i < curStepIdx) {
+          colClass += (i === curStepIdx - 1) ? ' active-step-col' : '';
+        } else {
+          colClass += ' future-step';
+        }
+        html += `<th class="${colClass}">${refs[i]}</th>`;
+      }
+      html += '</tr></thead><tbody>';
+
+      // Frame rows
+      for (let f = 0; f < frameCount; f++) {
+        html += `<tr><td class="row-label">Frame ${f}</td>`;
+        for (let col = 0; col < refs.length; col++) {
+          if (col < curStepIdx) {
+            const stepData = steps[col];
+            const pageVal = stepData.frames[f];
+            const isTargetFrame = (stepData.targetFrame === f);
+            
+            let cellClass = 'td-frame-cell';
+            if (pageVal === null) {
+              cellClass += ' empty-slot';
+            } else if (col === curStepIdx - 1 && isTargetFrame) {
+              cellClass += (stepData.status === 'FAULT') ? ' fault-incoming' : ' hit-incoming';
+            } else {
+              cellClass += ' active-frame-step';
+            }
+
+            html += `<td class="${cellClass}">${pageVal !== null ? pageVal : '-'}</td>`;
+          } else {
+            // Future column
+            html += '<td class="td-frame-cell future-cell">-</td>';
+          }
+        }
+        html += '</tr>';
+      }
+
+      // Status row (Hit / Fault)
+      html += '<tr><td class="row-label">Status</td>';
+      for (let col = 0; col < refs.length; col++) {
+        if (col < curStepIdx) {
+          const stepData = steps[col];
+          const isFault = stepData.status === 'FAULT';
+          const badgeClass = isFault ? 'badge-fault' : 'badge-hit';
+          const icon = isFault ? '✕ FAULT' : '✓ HIT';
+          html += `<td class="td-status-cell"><span class="status-badge ${badgeClass}">${icon}</span></td>`;
+        } else {
+          html += '<td class="td-status-cell future-status"><span class="status-badge" style="background: rgba(255,255,255,0.03); color: var(--text-dim);">-</span></td>';
+        }
+      }
+      html += '</tr>';
+
+      // Evicted Page row
+      html += '<tr><td class="row-label">Evicted</td>';
+      for (let col = 0; col < refs.length; col++) {
+        if (col < curStepIdx) {
+          const stepData = steps[col];
+          const evicted = stepData.evictedPage;
+          html += `<td class="td-evict-cell">${evicted !== null ? `⇥ ${evicted}` : '-'}</td>`;
+        } else {
+          html += '<td class="td-evict-cell future-status">-</td>';
+        }
+      }
+      html += '</tr>';
+
+      html += '</tbody>';
+      simulationTable.innerHTML = html;
+
+      // Auto scroll active column into view
+      const activeHeader = simulationTable.querySelector('.active-step-col');
+      if (activeHeader) {
+        activeHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+
+    /**
+     * Updates Step HUD, Narrative commentary and Summary metrics
+     */
+    function updateStepHUD() {
+      if (!state.simResult) return;
+
+      const total = state.simResult.totalRefs;
+      const step = state.currentStep;
+
+      // Update counters
+      stepCounterBadge.textContent = `Step: ${step} / ${total}`;
+      stepScrubber.max = total;
+      stepScrubber.value = step;
+
+      // Button states
+      btnStepReset.disabled = (step === 0);
+      btnStepBack.disabled = (step === 0);
+      btnStepForward.disabled = (step === total);
+      btnStepEnd.disabled = (step === total);
+
+      let currentFaults = 0;
+      let currentHits = 0;
+
+      if (step === 0) {
+        narrativeIcon.textContent = '💡';
+        stepNarrative.className = 'step-narrative';
+        narrativeBody.innerHTML = `Simulation initialized for <strong>${state.simResult.algo}</strong>. Click <strong>Step Forward</strong> or <strong>Auto Play</strong> to begin stepping.`;
+      } else {
+        const lastStepData = state.simResult.steps[step - 1];
+        currentFaults = lastStepData.runningFaults;
+        currentHits = lastStepData.runningHits;
+
+        if (lastStepData.status === 'FAULT') {
+          narrativeIcon.textContent = '❌';
+          stepNarrative.className = 'step-narrative is-fault';
+        } else {
+          narrativeIcon.textContent = '✅';
+          stepNarrative.className = 'step-narrative is-hit';
+        }
+        narrativeBody.innerHTML = `<strong>Step ${step}:</strong> ${lastStepData.explanation}`;
+      }
+
+      hudFaultCount.textContent = currentFaults;
+      hudHitCount.textContent = currentHits;
+
+      // Update Summary Cards & Meters
+      const hitRatio = step > 0 ? ((currentHits / step) * 100).toFixed(1) : '0.0';
+      const faultRatio = step > 0 ? ((currentFaults / step) * 100).toFixed(1) : '0.0';
+
+      summaryTotalRefs.textContent = step;
+      summaryFaults.textContent = currentFaults;
+      summaryHits.textContent = currentHits;
+      summaryHitRatio.textContent = `${hitRatio}%`;
+
+      meterHitRatioVal.textContent = `${hitRatio}%`;
+      meterFaultRatioVal.textContent = `${faultRatio}%`;
+      meterHitFill.style.width = `${hitRatio}%`;
+      meterFaultFill.style.width = `${faultRatio}%`;
+    }
+
+    /**
+     * Step Navigation
+     */
+    function setStep(newStep) {
+      if (!state.simResult) return;
+      const maxStep = state.simResult.totalRefs;
+      state.currentStep = Math.max(0, Math.min(newStep, maxStep));
+      renderSimulationTable();
+      updateStepHUD();
+
+      if (state.currentStep >= maxStep && state.isPlaying) {
+        stopAutoPlay();
+      }
+    }
+
+    function stepForward() {
+      if (!state.simResult) return;
+      if (state.currentStep < state.simResult.totalRefs) {
+        setStep(state.currentStep + 1);
+      }
+    }
+
+    function stepBack() {
+      if (!state.simResult) return;
+      if (state.currentStep > 0) {
+        setStep(state.currentStep - 1);
+      }
+    }
+
+    function toggleAutoPlay() {
+      if (state.isPlaying) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (!state.simResult) return;
+      if (state.currentStep >= state.simResult.totalRefs) {
+        setStep(0);
+      }
+      state.isPlaying = true;
+      btnAutoPlay.classList.add('playing');
+      playIcon.textContent = '⏸';
+      playText.textContent = 'Pause';
+
+      state.autoPlayTimer = setInterval(() => {
+        if (state.currentStep < state.simResult.totalRefs) {
+          stepForward();
+        } else {
+          stopAutoPlay();
+        }
+      }, state.autoPlayDelay);
+    }
+
+    function stopAutoPlay() {
+      state.isPlaying = false;
+      btnAutoPlay.classList.remove('playing');
+      playIcon.textContent = '▶';
+      playText.textContent = 'Auto Play';
+      if (state.autoPlayTimer) {
+        clearInterval(state.autoPlayTimer);
+        state.autoPlayTimer = null;
+      }
+    }
+
+    // --- Compare All Mode & Canvas Chart ---
+
+    function runCompareAll() {
+      const refs = state.referenceString;
+      const frames = state.frameCount;
+
+      const fifoRes = executeAlgorithm('FIFO', refs, frames);
+      const lruRes = executeAlgorithm('LRU', refs, frames);
+      const optRes = executeAlgorithm('OPT', refs, frames);
+
+      state.compareResults = {
+        FIFO: fifoRes,
+        LRU: lruRes,
+        OPT: optRes
+      };
+
+      renderComparisonTable();
+      drawComparisonChart();
+    }
+
+    function renderComparisonTable() {
+      const { FIFO, LRU, OPT } = state.compareResults;
+      const algos = [FIFO, LRU, OPT];
+
+      // Determine best (lowest faults)
+      const minFaults = Math.min(FIFO.faults, LRU.faults, OPT.faults);
+
+      let winnerNames = [];
+      if (OPT.faults === minFaults) winnerNames.push('Optimal');
+      if (LRU.faults === minFaults && !winnerNames.includes('LRU')) winnerNames.push('LRU');
+      if (FIFO.faults === minFaults && !winnerNames.includes('FIFO')) winnerNames.push('FIFO');
+
+      winnerText.textContent = `Top Performer: ${winnerNames.join(' & ')} (${minFaults} Page Faults)`;
+      winnerSubtext.textContent = `Achieved highest efficiency with a fault ratio of ${((minFaults / FIFO.totalRefs) * 100).toFixed(1)}% across ${FIFO.totalRefs} page requests.`;
+
+      let tbodyHtml = '';
+      algos.forEach(res => {
+        const isWinner = res.faults === minFaults;
+        const rowClass = isWinner ? 'winner-row' : '';
+        const winnerBadge = isWinner ? '<span class="badge-best">★ Winner</span>' : '';
+        const nameMap = { FIFO: 'FIFO (First-In, First-Out)', LRU: 'LRU (Least Recently Used)', OPT: 'Optimal (Bélády OPT)' };
+
+        tbodyHtml += `
+          <tr class="${rowClass}">
+            <td>
+              <div class="comp-algo-name">
+                <span>${nameMap[res.algo]}</span>
+                ${winnerBadge}
+              </div>
+            </td>
+            <td style="color: var(--accent-hit); font-weight: 600; font-family: var(--font-mono);">${res.hits}</td>
+            <td style="color: var(--accent-fault); font-weight: 600; font-family: var(--font-mono);">${res.faults}</td>
+            <td style="font-family: var(--font-mono);">${res.hitRatio}%</td>
+            <td style="font-family: var(--font-mono);">${res.faultRatio}%</td>
+            <td>
+              ${isWinner 
+                ? '<span style="color: var(--accent-gold); font-weight: 600;">Optimal Efficiency</span>' 
+                : `<span style="color: var(--text-muted);">${res.faults - minFaults} extra fault(s)</span>`}
+            </td>
+          </tr>
+        `;
+      });
+
+      comparisonTableBody.innerHTML = tbodyHtml;
+    }
+
+    /**
+     * Pure HTML5 Canvas Bar Chart Rendering
+     */
+    function drawComparisonChart() {
+      const canvas = compareChart;
+      const ctx = canvas.getContext('2d');
+
+      // High-DPI Canvas scaling
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+
+      const { FIFO, LRU, OPT } = state.compareResults;
+      const data = [
+        { label: 'FIFO', faults: FIFO.faults, hits: FIFO.hits },
+        { label: 'LRU', faults: LRU.faults, hits: LRU.hits },
+        { label: 'Optimal', faults: OPT.faults, hits: OPT.hits }
+      ];
+
+      const minFaults = Math.min(FIFO.faults, LRU.faults, OPT.faults);
+
+      const paddingLeft = 50;
+      const paddingRight = 40;
+      const paddingTop = 35;
+      const paddingBottom = 45;
+
+      const chartW = width - paddingLeft - paddingRight;
+      const chartH = height - paddingTop - paddingBottom;
+
+      const maxVal = Math.max(1, state.referenceString.length);
+
+      // Draw horizontal grid lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      const gridSteps = 4;
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.textAlign = 'right';
+
+      for (let i = 0; i <= gridSteps; i++) {
+        const val = Math.round((maxVal / gridSteps) * i);
+        const y = paddingTop + chartH - (i / gridSteps) * chartH;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+
+        ctx.fillText(val.toString(), paddingLeft - 8, y + 4);
+      }
+
+      // Grouped Bars
+      const groupWidth = chartW / data.length;
+      const barWidth = Math.min(34, groupWidth * 0.28);
+      const barGap = 8;
+
+      data.forEach((item, idx) => {
+        const groupCenterX = paddingLeft + (idx + 0.5) * groupWidth;
+        const faultX = groupCenterX - barWidth - barGap / 2;
+        const hitX = groupCenterX + barGap / 2;
+
+        const faultHeight = (item.faults / maxVal) * chartH;
+        const hitHeight = (item.hits / maxVal) * chartH;
+
+        const faultY = paddingTop + chartH - faultHeight;
+        const hitY = paddingTop + chartH - hitHeight;
+
+        // Fault Bar
+        const faultGrad = ctx.createLinearGradient(0, faultY, 0, faultY + faultHeight);
+        faultGrad.addColorStop(0, '#ff4b72');
+        faultGrad.addColorStop(1, '#ff3366');
+        ctx.fillStyle = faultGrad;
+        drawRoundedRect(ctx, faultX, faultY, barWidth, faultHeight, 4);
+
+        // Hit Bar
+        const hitGrad = ctx.createLinearGradient(0, hitY, 0, hitY + hitHeight);
+        hitGrad.addColorStop(0, '#00e5cc');
+        hitGrad.addColorStop(1, '#009688');
+        ctx.fillStyle = hitGrad;
+        drawRoundedRect(ctx, hitX, hitY, barWidth, hitHeight, 4);
+
+        // Values on top of bars
+        ctx.font = 'bold 12px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        
+        // Fault value
+        ctx.fillStyle = '#ff6b8b';
+        ctx.fillText(item.faults.toString(), faultX + barWidth / 2, faultY - 6);
+
+        // Hit value
+        ctx.fillStyle = '#00f5d4';
+        ctx.fillText(item.hits.toString(), hitX + barWidth / 2, hitY - 6);
+
+        // X-axis Category Label
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '600 13px Outfit, sans-serif';
+        ctx.fillText(item.label, groupCenterX, height - 16);
+
+        // Crown on lowest faults
+        if (item.faults === minFaults) {
+          ctx.font = '14px Outfit';
+          ctx.fillText('👑', groupCenterX, faultY - 22);
+        }
+      });
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      if (height <= 0) return;
+      radius = Math.min(radius, height / 2, width / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height);
+      ctx.lineTo(x, y + height);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // --- Main Simulator Dispatcher ---
+
+    function runSimulation() {
+      if (!validateInputs()) return;
+      stopAutoPlay();
+
+      const refs = state.referenceString;
+      const frames = state.frameCount;
+      const algo = state.currentAlgo;
+
+      if (algo === 'COMPARE') {
+        singleModeSection.classList.add('hidden');
+        comparisonSection.classList.add('visible');
+        runCompareAll();
+      } else {
+        comparisonSection.classList.remove('visible');
+        singleModeSection.classList.remove('hidden');
+
+        matrixTableHeading.textContent = `Memory Allocation Matrix (${algo})`;
+        state.simResult = executeAlgorithm(algo, refs, frames);
+        setStep(state.simResult.totalRefs); // Default to full simulation initially
+      }
+    }
+
+    // --- Event Listeners ---
+
+    // Tab Switching
+    algoTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        algoTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.currentAlgo = tab.dataset.algo;
+        runSimulation();
+      });
+    });
+
+    btnSimulate.addEventListener('click', runSimulation);
+
+    // Presets
+    btnLoadExample.addEventListener('click', () => {
+      pageRefInput.value = '7 0 1 2 0 3 0 4 2 3';
+      frameCountInput.value = 3;
+      runSimulation();
+    });
+
+    btnPresetBelady.addEventListener('click', () => {
+      pageRefInput.value = '1 2 3 4 1 2 5 1 2 3 4 5';
+      frameCountInput.value = 3;
+      state.currentAlgo = 'FIFO';
+      document.getElementById('tabFIFO').click();
+    });
+
+    btnPresetLocality.addEventListener('click', () => {
+      pageRefInput.value = '1 2 3 2 1 5 2 1 6 2 5 6 3 1 3';
+      frameCountInput.value = 4;
+      runSimulation();
+    });
+
+    btnGenerateRandom.addEventListener('click', () => {
+      const len = 12;
+      const randoms = [];
+      for (let i = 0; i < len; i++) {
+        randoms.push(Math.floor(Math.random() * 8));
+      }
+      pageRefInput.value = randoms.join(' ');
+      runSimulation();
+    });
+
+    btnClearInput.addEventListener('click', () => {
+      pageRefInput.value = '';
+      frameCountInput.value = 3;
+      pageRefInput.focus();
+    });
+
+    // Frame quick buttons
+    document.querySelectorAll('.frame-quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        frameCountInput.value = btn.dataset.frames;
+        runSimulation();
+      });
+    });
+
+    // Stepper buttons
+    btnStepReset.addEventListener('click', () => {
+      stopAutoPlay();
+      setStep(0);
+    });
+
+    btnStepBack.addEventListener('click', () => {
+      stopAutoPlay();
+      stepBack();
+    });
+
+    btnStepForward.addEventListener('click', () => {
+      stopAutoPlay();
+      stepForward();
+    });
+
+    btnStepEnd.addEventListener('click', () => {
+      stopAutoPlay();
+      if (state.simResult) setStep(state.simResult.totalRefs);
+    });
+
+    btnAutoPlay.addEventListener('click', toggleAutoPlay);
+
+    speedSelect.addEventListener('change', (e) => {
+      state.autoPlayDelay = parseInt(e.target.value, 10);
+      if (state.isPlaying) {
+        stopAutoPlay();
+        startAutoPlay();
+      }
+    });
+
+    stepScrubber.addEventListener('input', (e) => {
+      stopAutoPlay();
+      setStep(parseInt(e.target.value, 10));
+    });
+
+    // Belady demo button in Compare mode
+    btnRunBeladyDemo.addEventListener('click', () => {
+      pageRefInput.value = '1 2 3 4 1 2 5 1 2 3 4 5';
+      frameCountInput.value = 3;
+      validateInputs();
+
+      const res3 = executeAlgorithm('FIFO', state.referenceString, 3);
+      const res4 = executeAlgorithm('FIFO', state.referenceString, 4);
+
+      alert(
+        `🚨 BELÁDY'S ANOMALY DEMONSTRATION 🚨\n\n` +
+        `Reference String: 1 2 3 4 1 2 5 1 2 3 4 5\n\n` +
+        `• FIFO with 3 Frames: ${res3.faults} Page Faults\n` +
+        `• FIFO with 4 Frames: ${res4.faults} Page Faults\n\n` +
+        `Paradox: Adding an extra memory frame actually INCREASED page faults from 9 to 10!\n` +
+        `This occurs because FIFO is not a stack algorithm.`
+      );
+    });
+
+    // Modal controls
+    btnHelp.addEventListener('click', () => {
+      helpModal.classList.add('active');
+    });
+
+    btnCloseHelpModal.addEventListener('click', () => {
+      helpModal.classList.remove('active');
+    });
+
+    helpModal.addEventListener('click', (e) => {
+      if (e.target === helpModal) helpModal.classList.remove('active');
+    });
+
+    btnPrint.addEventListener('click', () => {
+      window.print();
+    });
+
+    // Window resize listener for chart redraw
+    window.addEventListener('resize', () => {
+      if (state.currentAlgo === 'COMPARE') {
+        drawComparisonChart();
+      }
+    });
+
+    // Initial Run on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      runSimulation();
+    });
+  </script>
+</body>
+</html>
